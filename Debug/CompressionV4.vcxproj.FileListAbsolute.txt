@@ -1,0 +1,2 @@
+C:\Users\Bruger\source\repos\CompressionV4\Debug\CompressionV4.exe
+C:\Users\Bruger\source\repos\CompressionV4\Debug\CompressionV4.pdb
