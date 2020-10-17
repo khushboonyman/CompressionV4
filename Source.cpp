@@ -12,13 +12,13 @@ using namespace std;
 int version = 4;
 int limit = 5;
 int recursiveLimit = 1000;
-//int runLimit = 100;
-int runLimit = 1000000;
+int runLimit = 100;
+//int runLimit = 1000000;
 string location_main = "C:\\Users\\Bruger\\Desktop\\books\\THESIS start aug 3\\datasets\\";
 //file name here
-string fileName = "my_complete_genome.txt";
+//string fileName = "my_complete_genome.txt";
 //string fileName = "genome.fa";
-//string fileName = "Gen178.fa";
+string fileName = "Gen178.fa";
 //string fileName = "embl50.h178.fa";
 
 string* dnaArray;
@@ -99,7 +99,7 @@ void writeLog(string location, string fileName, int version, int memoryVar, int 
 //FIND A GOOD RELATIVE STRING
 
 string findRelativeString() {
-    int i, j, totalSize=0, maxLength = 0, maxString=-1, relativeStr=-1, maxFingerPrint=0;
+    int i, j, totalSize=0, maxLength = 0, maxString=-1, relativeStr=-1, maxFingerPrint=0, maxCommon=0, betterRelativeStr=-1;
     set<string> fingerPrintsTotal;
     string currentString, fingerPrint;
     set<string>* fingerPrintsEach = new set<string>[numberOfStrings];
@@ -122,10 +122,27 @@ string findRelativeString() {
         }
     }
 
-    cout << " size of all fingerprints " << fingerPrintsTotal.size() << " size of string array " << totalSize << " max string " << maxString;
-    cout << " relative string " << relativeStr << endl;
+    int* common = new int[numberOfStrings];
+    for (i = 0; i < numberOfStrings; i++) {
+        common[i] = 0;
+        set<string>::iterator itfingerPrintsEach;
+        for (itfingerPrintsEach = fingerPrintsEach[i].begin(); itfingerPrintsEach != fingerPrintsEach[i].end(); ++itfingerPrintsEach) {
+            fingerPrint = *itfingerPrintsEach;
+            for (j = 0; j < numberOfStrings; j++) {
+                if (j == i || fingerPrintsEach[j].find(fingerPrint) != fingerPrintsEach[j].end())
+                    common[i]++;
+            }
+            if (common[i] > maxCommon) {
+                maxCommon = common[i];
+                betterRelativeStr = i;
+            }
+        }
+    }
 
-    return dnaArray[relativeStr];
+    cout << " size of all fingerprints " << fingerPrintsTotal.size() << " size of string array " << totalSize << " max string " << maxString;
+    cout << " relative string " << relativeStr << " most common " << maxCommon << " better relative " << betterRelativeStr << endl;
+
+    return dnaArray[betterRelativeStr];
 }
 
 //FIND IF THE FINGERPRINT EXISTS AND WHICH INDICES ARE THERE
