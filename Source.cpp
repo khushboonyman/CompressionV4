@@ -10,25 +10,26 @@
 using namespace std;
 //GLOBAL VARIABLES THAT NEED TO BE CHANGED ACCORDINGLY
 int version = 4;
-int limit = 5;
+int limit = 20;
 int recursiveLimit = 1000;
-int runLimit = 100;
+int runLimit = 10000;
 //int runLimit = 1000000;
 string location_main = "C:\\Users\\Bruger\\Desktop\\books\\THESIS start aug 3\\datasets\\";
 //file name here
 //string fileName = "my_complete_genome.txt";
-//string fileName = "genome.fa";
-string fileName = "Gen178.fa";
+string fileName = "genome.fa";
+//string fileName = "Gen178.fa";
 //string fileName = "embl50.h178.fa";
 
 string* dnaArray;
+set<char>* eachChars;
 unordered_map<string, vector<int>> fingerPrints;
 unordered_map<char, int> singleChar;
 int memory = 0;
 string relativeString;
 int relativeSize;
-int numberOfStrings;
-int countSingleChar = 0;
+int numberOfStrings = 0;
+set<char> allChars;
 int memoryVar = 0;
 int memoryOld = 0;
 
@@ -43,46 +44,44 @@ int recursive = 0;
 string extra = "";
 
 //FIND HOW MANY STRINGS ARE THERE
-int findSize(string location) {
+void findSize(string location) {
     ifstream myfile;
     myfile.open(location);
     cout << "dna file opened" << endl;
     string x;
-    int size = 0;
 
     while (myfile >> x) {
         if (x[0] == '>')
-            size += 1;
+            numberOfStrings += 1;
     }
 
     myfile.close();
-    return size;
 }
 
 //CREATE ARRAY OF DNA STRINGS FROM THE FILE
-string* readDna(string location, int size) {
+void readDna(string location) {
     ifstream myfile;
-    string* dnaArray;
-    dnaArray = new string[size];
     myfile.open(location);
-    size = -1;
+    int size = -1;
     string temp, x;
 
     while (myfile >> x) {
         if (x[0] == '>') {
+            cout << "index "<<size + 1 << endl;
             if (size > -1) {
                 dnaArray[size] = temp;
             }
             temp = "";
-            size += 1;
+            size ++;
         }
-        else
+        else {
             temp += x;
+        }
+            
     }
     dnaArray[size] = temp;
     myfile.close();
     cout << endl << "dna file closed" << endl;
-    return dnaArray;
 }
 
 //WRITE A LOG TO THE FILE, WHICH WILL BE USED TO PLOT TIME AND SPACE USED BY COMPRESSION TECHNIQUE
@@ -99,37 +98,37 @@ void writeLog(string location, string fileName, int version, int memoryVar, int 
 //FIND A GOOD RELATIVE STRING
 
 string findRelativeString() {
-    int i, j, totalSize=0, maxLength = 0, maxString=-1, relativeStr=-1, maxFingerPrint=0, maxCommon=0, betterRelativeStr=-1;
-    set<string> fingerPrintsTotal;
+    cout << "finding relative string" << endl;
+
+    int i, j, totalSize=0, relativeStr=-1, maxFingerPrint=0, maxCommon=0, betterRelativeStr=-1, chosenStringSize=0;
     string currentString, fingerPrint;
     set<string>* fingerPrintsEach = new set<string>[numberOfStrings];
 
     for (i = 0; i < numberOfStrings; i++) {
         currentString = dnaArray[i];
-        if (currentString.size() > maxLength) {
-            maxLength = currentString.size();
-            maxString = i;
-        }
+        cout << "first loop " << i << " size of string " << currentString.size();
         totalSize += currentString.size();
         for (j = 0; j <= currentString.size() - limit; j++) {
             fingerPrint = currentString.substr(j, limit);
             fingerPrintsEach[i].insert(fingerPrint);
-            fingerPrintsTotal.insert(fingerPrint);
         }
-        if (fingerPrintsEach[i].size() > maxFingerPrint) {
+        if (fingerPrintsEach[i].size() > maxFingerPrint || (fingerPrintsEach[i].size() == maxFingerPrint && currentString.size() > chosenStringSize)) {
             maxFingerPrint = fingerPrintsEach[i].size();
             relativeStr = i;
+            chosenStringSize = currentString.size();
         }
+        cout << " fingerPrint size " << fingerPrintsEach[i].size() << endl;
     }
 
-    int* common = new int[numberOfStrings];
+    /*int* common = new int[numberOfStrings];
     for (i = 0; i < numberOfStrings; i++) {
+        cout << "second loop" << endl;
         common[i] = 0;
         set<string>::iterator itfingerPrintsEach;
         for (itfingerPrintsEach = fingerPrintsEach[i].begin(); itfingerPrintsEach != fingerPrintsEach[i].end(); ++itfingerPrintsEach) {
             fingerPrint = *itfingerPrintsEach;
             for (j = 0; j < numberOfStrings; j++) {
-                if (j == i || fingerPrintsEach[j].find(fingerPrint) != fingerPrintsEach[j].end())
+                if (j != i || fingerPrintsEach[j].find(fingerPrint) != fingerPrintsEach[j].end())
                     common[i]++;
             }
             if (common[i] > maxCommon) {
@@ -138,11 +137,14 @@ string findRelativeString() {
             }
         }
     }
+    delete[] common;*/
 
-    cout << " size of all fingerprints " << fingerPrintsTotal.size() << " size of string array " << totalSize << " max string " << maxString;
-    cout << " relative string " << relativeStr << " most common " << maxCommon << " better relative " << betterRelativeStr << endl;
+    delete[] fingerPrintsEach;
 
-    return dnaArray[betterRelativeStr];
+    cout << " size of string array " << totalSize ;
+    cout << " relative string " << relativeStr << endl;
+
+    return dnaArray[relativeStr];
 }
 
 //FIND IF THE FINGERPRINT EXISTS AND WHICH INDICES ARE THERE
@@ -230,7 +232,6 @@ void compress(string& toCompress, vector<int>& indexRelativeElement, vector<int>
             indexRelativeElement.push_back(index);
             indexCStringElement.push_back(start);
             start++;
-            countSingleChar++;
         }
         //fingerprint(s) found, so now we find the longest substring that matches through the fingerprint(s)
         else {
@@ -278,7 +279,6 @@ void compress(string& toCompress, vector<int>& indexRelativeElement, vector<int>
         indexRelativeElement.push_back(index);
         indexCStringElement.push_back(start);
         start++;
-        countSingleChar++;
     }
 }
 
@@ -536,9 +536,9 @@ void processSubstringFromUser(int* sizes) {
     }
 }
 
-//PROCESS ONE MILLION REQUESTS OF FINDING A CHARACTER ON A RANDOM INDEX FROM A RANDOM STRING
-auto processMillionRequest(int* sizes) {
-    cout << " processing million requests " << endl;
+//PROCESS MANY RANDOM REQUESTS OF FINDING A CHARACTER ON AN INDEX FROM A STRING
+auto processRandomRequests(int* sizes) {
+    cout << " processing " << runLimit << " requests " << endl;
     int counter = 0;
     int stringIndex, charIndex;
     //measuring time start
@@ -618,7 +618,7 @@ void compressReference() {
     currentString += additional;
     updateVector(baseIndex, additional, currentIndex, currentString, subStrings, memory);
     
-    cout << "memory used by compression of main string : " << memory << endl;
+    cout << "memory used by compression of main string : " << memory << "original size " << relativeString.size() << endl;
 }
 
 //PRINT THE DATA IN VARIOUS VECTORS FOR THE COMPRESSED STRING
@@ -663,31 +663,46 @@ void processCharRequestFromUserRefString() {
 }
 
 int main() {
-    cout << "PROGRAM STARTING!!!" << endl;
+    cout << "PROGRAM STARTING WITH LIMIT " << limit <<" FILE NAME "<< fileName << " !!!!!"<< endl;
 
     int i;
     string location = location_main + fileName;
-    numberOfStrings = findSize(location);
+
+    findSize(location);
+    
     dnaArray = new string[numberOfStrings];
-    dnaArray = readDna(location, numberOfStrings);
+
+    cout << "NUMBER OF STRINGS " << numberOfStrings << endl;
+    
+    readDna(location);
+
     int* sizes = new int[numberOfStrings];
 
     memoryVar += (sizeof(sizes) + (4 * numberOfStrings));  //adding size of pointer for size array and each element of size array
 
-    cout << "memory var after size array " << memoryVar << endl;
+    //eachChars = new set<char>[numberOfStrings];
+    //set<char>::iterator itChars;
 
     for (i = 0; i < numberOfStrings; i++) {
         sizes[i] = dnaArray[i].size();
         memoryOld += sizes[i]; //adding length of each string
+        /*for (int j = 0; j < sizes[i]; j++) {
+            eachChars[i].insert(dnaArray[i][j]);
+            allChars.insert(dnaArray[i][j]);
+        }*/
     }
 
-    cout << "DNA ARRAY !!!" << endl;
+    //cout << "total characters " << allChars.size() << endl;
+
+    /*for (i = 0; i < numberOfStrings; i++) {
+        cout << " characters in string " << i << " " << eachChars[i].size() << endl;
+    }*/
+
+    cout << "DNA ARRAY READ !!!" << endl;
 
     relativeString = findRelativeString();
     //relativeString = dnaArray[0];
     relativeSize = relativeString.size();
-
-    cout << "total number of strings : " << numberOfStrings << " and size of relative string : " << relativeSize << endl;
 
     setFingerPrintSingleChar();
     printSingleChar();
@@ -703,30 +718,41 @@ int main() {
     cout << "BEFORE COMPRESSION !!!" << endl;
 
     for (i = 0; i < numberOfStrings; i++) {
-        cout << "compressing " << i << endl;
         string toCompress = dnaArray[i];
+        cout << "compressing " << i << " of length " << toCompress.size();
+        //measuring time start
+        auto startInner = chrono::high_resolution_clock::now();
+
         compress(toCompress, indexRelative[i], indexCString[i]);
-        memoryVar += (8 * indexRelative[i].size()); //adding space for encoding
+
+        //measuring time end
+        auto stopInner = chrono::high_resolution_clock::now();
+        auto durationInner = chrono::duration_cast<chrono::milliseconds>(stopInner - startInner);
+
+        int compressedSize = 8 * indexRelative[i].size();
+        memoryVar += compressedSize; //adding space for encoding
+        cout << " compressed size " << compressedSize << " duration in millisec " << durationInner.count() <<endl;
     }
 
     cout << "AFTER COMPRESSION!!!" << endl;
 
     compressReference();
 
-    auto durationMillion = processMillionRequest(sizes);
+    auto durationRandomRequests = processRandomRequests(sizes);
     delete[] dnaArray;
     delete[] sizes;
     delete[] indexRelative;
     delete[] indexCString;
     delete originalIndex;
     delete pointerIndex;
+    //delete[] eachChars;
 
     memoryVar += memory;
     cout << "PROGRAM ENDING!!! " << endl;
 
-    cout << "old memory : " << memoryOld << " compressed memory : " << memoryVar << endl;
+    cout << "old memory : " << memoryOld << " compressed memory : " << memoryVar << " compression " << ((float)memoryVar/(float)memoryOld)*100.0 << endl;
     //string headers = "FILE_NAME;VERSION;MEMORY;TIME";
     location = location_main + "LOGS.csv";
     int timeUsed = 0;
-    writeLog(location, fileName, version, memoryVar, (int)durationMillion.count());
+    writeLog(location, fileName, version, memoryVar, (int)durationRandomRequests.count());
 }
