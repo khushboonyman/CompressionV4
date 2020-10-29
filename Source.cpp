@@ -10,17 +10,18 @@
 using namespace std;
 //GLOBAL VARIABLES THAT NEED TO BE CHANGED ACCORDINGLY
 int version = 4;
-int limit = 20;
+int limit = 10;
 int recursiveLimit = 1000;
 int runLimit = 10000;
 //int runLimit = 1000000;
 string location_main = "C:\\Users\\Bruger\\Desktop\\books\\THESIS start aug 3\\datasets\\";
 //file name here
-//string fileName = "my_complete_genome.txt";
-string fileName = "genome.fa";
+//string fileName = "genome.fa";
 //string fileName = "Gen178.fa";
 //string fileName = "embl50.h178.fa";
-
+//FILE TO BE LOGGED
+//string fileName = "my_complete_genome.txt";
+string fileName = "genome_selfmade.txt";
 string* dnaArray;
 set<char>* eachChars;
 unordered_map<string, vector<int>> fingerPrints;
@@ -119,25 +120,6 @@ string findRelativeString() {
         }
         cout << " fingerPrint size " << fingerPrintsEach[i].size() << endl;
     }
-
-    /*int* common = new int[numberOfStrings];
-    for (i = 0; i < numberOfStrings; i++) {
-        cout << "second loop" << endl;
-        common[i] = 0;
-        set<string>::iterator itfingerPrintsEach;
-        for (itfingerPrintsEach = fingerPrintsEach[i].begin(); itfingerPrintsEach != fingerPrintsEach[i].end(); ++itfingerPrintsEach) {
-            fingerPrint = *itfingerPrintsEach;
-            for (j = 0; j < numberOfStrings; j++) {
-                if (j != i || fingerPrintsEach[j].find(fingerPrint) != fingerPrintsEach[j].end())
-                    common[i]++;
-            }
-            if (common[i] > maxCommon) {
-                maxCommon = common[i];
-                betterRelativeStr = i;
-            }
-        }
-    }
-    delete[] common;*/
 
     delete[] fingerPrintsEach;
 
@@ -545,7 +527,7 @@ auto processRandomRequests(int* sizes) {
     auto start = chrono::high_resolution_clock::now();
 
     while (counter < runLimit) {
-        if (counter % 10000 == 0) {
+        if (counter % 1000 == 0) {
             cout << counter << endl;
         }
         stringIndex = rand() % (numberOfStrings - 1);
@@ -555,10 +537,10 @@ auto processRandomRequests(int* sizes) {
         vector<int> indexCStringElement = indexCString[stringIndex];
         //this function finds the character from the compressed datastructure
         char charFound = findCharacter(indexRelativeElement, indexCStringElement, charIndex);
-        if (charFound != dnaArray[stringIndex][charIndex]) {
+        /*if (charFound != dnaArray[stringIndex][charIndex]) {
             cout << "some issue fetching character " << stringIndex << " " << charIndex << endl;
             break;
-        }
+        }*/
         counter++;
     }
     //measuring time end
@@ -732,14 +714,16 @@ int main() {
         int compressedSize = 8 * indexRelative[i].size();
         memoryVar += compressedSize; //adding space for encoding
         cout << " compressed size " << compressedSize << " duration in millisec " << durationInner.count() <<endl;
+        dnaArray[i] = "";
     }
+
+    delete[] dnaArray;
 
     cout << "AFTER COMPRESSION!!!" << endl;
 
     compressReference();
 
     auto durationRandomRequests = processRandomRequests(sizes);
-    delete[] dnaArray;
     delete[] sizes;
     delete[] indexRelative;
     delete[] indexCString;
