@@ -1,8 +1,11 @@
 ﻿  Source.cpp
-C:\Users\Bruger\source\repos\CompressionV4\Source.cpp(115,23): warning C4018: '<=': signed/unsigned mismatch
-C:\Users\Bruger\source\repos\CompressionV4\Source.cpp(290,18): warning C4018: '<=': signed/unsigned mismatch
-C:\Users\Bruger\source\repos\CompressionV4\Source.cpp(319,41): warning C4018: '>=': signed/unsigned mismatch
-C:\Users\Bruger\source\repos\CompressionV4\Source.cpp(344,18): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Bruger\source\repos\CompressionV4\Source.cpp(420,23): warning C4018: '<=': signed/unsigned mismatch
-C:\Users\Bruger\source\repos\CompressionV4\Source.cpp(552,19): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Bruger\source\repos\CompressionV4\Source.cpp(122,27): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Bruger\source\repos\CompressionV4\Source.cpp(190,27): warning C4018: '<=': signed/unsigned mismatch
+C:\Users\Bruger\source\repos\CompressionV4\Source.cpp(259,27): warning C4018: '<=': signed/unsigned mismatch
+C:\Users\Bruger\source\repos\CompressionV4\Source.cpp(365,37): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\Bruger\source\repos\CompressionV4\Source.cpp(393,18): warning C4018: '<=': signed/unsigned mismatch
+C:\Users\Bruger\source\repos\CompressionV4\Source.cpp(397,18): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Bruger\source\repos\CompressionV4\Source.cpp(473,23): warning C4018: '<=': signed/unsigned mismatch
+C:\Users\Bruger\source\repos\CompressionV4\Source.cpp(605,19): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Bruger\source\repos\CompressionV4\Source.cpp(628,9): warning C4101: 'i': unreferenced local variable
   CompressionV4.vcxproj -> C:\Users\Bruger\source\repos\CompressionV4\Debug\CompressionV4.exe
