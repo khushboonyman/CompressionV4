@@ -152,12 +152,13 @@ void updateFingerPrints(unordered_map<string, vector<bool>>& fingerPrintsIndex, 
         vector<bool> stringIndex = fpiCheck->second;
         if (!stringIndex[i]) {
             stringIndex[i] = true;
+            stringIndex[numberOfStrings] = true;
             fingerPrintsIndex[fingerPrint] = stringIndex;
         }
     }
     else {
-        vector<bool> stringIndex(numberOfStrings);
-        for (int x = 0; x < numberOfStrings; x++) {
+        vector<bool> stringIndex(numberOfStrings+1);
+        for (int x = 0; x < numberOfStrings+1; x++) {
             stringIndex[x] = false;
         }
         stringIndex[i] = true;
@@ -256,19 +257,24 @@ string findRelativeString() {
 
     cout << "creating array numberOfOccurrences for each string" << endl;
 
-    //GO THROUGH EACH OF THE FINGERPRINTS AND THEIR CORRESPONDING VECTORS AND MARK THE NUMBER OF OCCURRENCES (HOW MANY STRINGS HAVE THE FINGERPRINT)
+    int z = 0;
+    //GO THROUGH EACH OF THE FINGERPRINTS AND THEIR CORRESPONDING VECTORS AND MARK THE NUMBER OF OCCURRENCES (HOW MANY FINGERPRINTS THE STRING HAS, THAT OTHERS ALSO HAVE)
     unordered_map<string, vector<bool>>::iterator fpiLoop = fingerPrintsIndex.begin();
     while (fpiLoop != fingerPrintsIndex.end()) {
+        if (z % 10000 == 0) {
+            cout << "in the loop : value of z " << z << endl;
+        }
         vector<bool> stringIndex = fpiLoop->second;
         for (int x = 0; x < numberOfStrings; x++) {
-            if (stringIndex[x]) {
+            if (stringIndex[x] && stringIndex[numberOfStrings]) {
                 numberOfOccurrences[x] += 1;
             }
         }
         fpiLoop++;
+        z++;
     }
 
-    cout << "checking which string has most number of occurrences" << endl;
+    cout << "checking which string has most number of occurrences with others" << endl;
 
     //GETTING THE FIRST PART OF RELATIVE STRING
     for (int i = 0; i < numberOfStrings; i++) {
@@ -279,18 +285,18 @@ string findRelativeString() {
     }
 
     cout << "moving fingerprints that are not in first part of string" << endl;
-
+    
+    z = 0;
     fpiLoop = fingerPrintsIndex.begin();
-    int x = 0;
     while (fpiLoop != fingerPrintsIndex.end()) {
-        if (x % 1000 == 0) {
+        if (z % 10000 == 0) {
             cout << "in the loop : size of fingerprints" << fingerPrintsRemoveFirst.size() <<endl ;
         }
-            if (!(fpiLoop->second)[relativeFirstStr]) {
-                fingerPrintsRemoveFirst[fpiLoop->first] = fpiLoop->second;
-            }    
-         x++;
-         fpiLoop++;
+        if (!(fpiLoop->second)[relativeFirstStr]) {
+            fingerPrintsRemoveFirst[fpiLoop->first] = fpiLoop->second;  //KHUSH : LOOP THROUGH AND GET THE LAST BOOL VALUE CORRECTED
+        }
+        z++;
+        fpiLoop++;
     }
 
     cout << " size of fingerprints " << fingerPrintsRemoveFirst.size() << endl;
@@ -303,14 +309,19 @@ string findRelativeString() {
 
     //GO THROUGH EACH OF THE FINGERPRINTS AND THEIR CORRESPONDING VECTORS AND MARK THE NUMBER OF OCCURRENCES (EXCLUDING FIRST RELATIVE STRING)
     fpiLoop = fingerPrintsRemoveFirst.begin();
+    z = 0;
     while (fpiLoop != fingerPrintsRemoveFirst.end()) {
+        if (z % 10000 == 0) {
+            cout << "in the loop : z is " << z << endl;
+        }
         vector<bool> stringIndex = fpiLoop->second;
         for (int x = 0; x < numberOfStrings; x++) {
-            if (stringIndex[x]) {
+            if (stringIndex[x] && stringIndex[numberOfStrings]) {  //KHUSH : THIS CHECK NEEDS TO BE CORRECTED ABOVE
                 numberOfOccurrences[x] += 1;
             }
         }
         fpiLoop++;
+        z++;
     }
 
     cout << "checking which string has most number of occurrences excluding the first one" << endl;
