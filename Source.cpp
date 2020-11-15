@@ -143,12 +143,11 @@ void writeLog(string &location, string &fileName, int &version, int &memoryVar, 
 }
 
 //CREATING MAPS <FINGERPRINT,INDEXOFSTRING> and <FINGERPRINT,NUMBEROFOCCURRENCES>
-void updateFingerPrints(unordered_map<string, vector<bool>>& fingerPrintsIndex, unordered_map<string, int>& fingerPrintsTotal, string &currentString, int &i, int &j) {
+void updateFingerPrints(unordered_map<string, vector<bool>>& fingerPrintsIndex, string &currentString, int &i, int &j) {
     string fingerPrint;
     fingerPrint.reserve(limit);
     fingerPrint.append(currentString, j, limit);
     unordered_map<string, vector<bool>>::iterator fpiCheck = fingerPrintsIndex.find(fingerPrint);
-    unordered_map<string, int>::iterator fptCheck = fingerPrintsTotal.find(fingerPrint);
     if (fpiCheck != fingerPrintsIndex.end()) {
         vector<bool> stringIndex = fpiCheck->second;
         if (!stringIndex[i]) {
@@ -164,82 +163,112 @@ void updateFingerPrints(unordered_map<string, vector<bool>>& fingerPrintsIndex, 
         stringIndex[i] = true;
         fingerPrintsIndex[fingerPrint] = stringIndex;
     }
-    if (fptCheck != fingerPrintsTotal.end()) {
-        int countT = fptCheck->second;
-        fingerPrintsTotal[fingerPrint] = countT + 1;
-    }
-    else {
-        fingerPrintsTotal[fingerPrint] = 1;
-    }
 }
 
-int findNextRelativeString(unordered_map<string, vector<bool>>& fingerPrintsIndex, int& relativeFirstStr) {
+int findNextRelativeString(vector<int>& common , int& relativeFirstStr, int& minCommon) {
     cout << " finding next relative ";
-    int toReturn = 0, nextMax = 0;
-    //std::vector<std::vector<int> > combinations(numberOfStrings,std::vector<int>(numberOfStrings));
-    vector<int> combinations (numberOfStrings);
-
-    //GO THROUGH EACH OF THE FINGERPRINTS AND INCREMENT COMMON FINGERPRINTS OF TWO DIMENSIONAL VECTOR, SO WE SELECT TWO DIFFERENT STRINGS TO CONCAT
-    unordered_map<string, vector<bool>>::iterator fpiLoop = fingerPrintsIndex.begin();
-    while (fpiLoop != fingerPrintsIndex.end()) {
-        vector<bool> stringIndex = fpiLoop->second;
-        if (!stringIndex[relativeFirstStr]) {
-            for (int y = 0; y < numberOfStrings; y++) {
-                if (stringIndex[y]) {
-                    combinations[y]++;
-                }
-            }
-        }
-        fpiLoop++;
-    }
+    int toReturn = 0;
 
     for (int x = 0; x < numberOfStrings; x++) {
-        if (combinations[x] > nextMax) {
-            nextMax = combinations[x];
+        if (x != relativeFirstStr && common[x] < minCommon) {
+            minCommon = common[x];
             toReturn = x;
         }
     }
 
-    cout << "next max fingerprint " << nextMax << endl;
+    cout << "minimum common fingerprint " << minCommon << endl;
 
     return toReturn;
 }
 
+int findFirstRelativeString(unordered_map<string, vector<bool>>& fingerPrintsIndex, vector<vector<int> >& common, int& maxCommon) {
+
+    cout << "finding first part of relative string, size of all fingerPrints  " <<fingerPrintsIndex.size() << endl;
+    int relativeFirstStr = 0, i = 0;
+    
+    unordered_map<string, vector<bool>>::iterator fpiLoop = fingerPrintsIndex.begin();
+
+    cout << "creating two dimensional array " << endl;
+    while (fpiLoop != fingerPrintsIndex.end()) {
+        if (i % 1000 == 0) {
+            cout <<"processing "<< i << endl;
+        }
+        vector<bool> stringIndex = fpiLoop->second;
+        for (int x = 0; x < numberOfStrings; x++) {
+            if (stringIndex[x]) {
+                for (int y = 0; y < numberOfStrings; y++) {
+                    if (x != y && stringIndex[y]) {
+                        common[x][y]++;
+                    }
+                }
+            }
+        }
+        i++;
+        fpiLoop++;
+    }
+
+    cout << "finding maximum common " << endl;
+
+    for (int x = 0; x < numberOfStrings; x++) {
+        int maxX = 0;
+        for (int y = 0; y < numberOfStrings; y++) {
+            if (x != y) {
+                maxX += common[x][y];
+            }
+        }
+        if (maxX > maxCommon) {
+            maxCommon = maxX;
+            relativeFirstStr = x;
+        }
+    }
+
+    cout << "max common " << maxCommon << endl;
+
+    return relativeFirstStr;
+}
+
 //FIND A GOOD RELATIVE STRING
 string findRelativeString() {
-
     string toReturn = "";
-
     cout << "finding relative string" << endl;
 
     int totalSize=0, relativeFirstStr=-1, relativeSecondStr=-1, maxFingerPrint=0, maxCommon=0, chosenStringSize=0;
     unordered_map<string, vector<bool>> fingerPrintsIndex ;
-    unordered_map<string, int> fingerPrintsTotal;
+    unordered_map<string, vector<bool>> fingerPrintsRemoveFirst;
+
+    cout << "creating vector of fingerprints" << endl;
 
     for (int i = 0; i < numberOfStrings; i++) {
-        cout << "first loop " << i << " size of string " << dnaArray[i].size() << "size of total fingerprints " << fingerPrintsTotal.size() << endl ;
+        cout << "first loop " << i << " size of string " << dnaArray[i].size() ;
         totalSize += dnaArray[i].size();
         for (int j = 0; j <= dnaArray[i].size() - limit; j++) {
-            updateFingerPrints(fingerPrintsIndex, fingerPrintsTotal, dnaArray[i], i, j);
+            updateFingerPrints(fingerPrintsIndex, dnaArray[i], i, j);
         }        
+        cout << " size of fingerprints " << fingerPrintsIndex.size() << endl;
     }
+
+    cout << "intializing number of occurrences" << endl;
 
     vector<int> numberOfOccurrences(numberOfStrings);
     for (int x = 0; x < numberOfStrings; x++) {
         numberOfOccurrences[x] = 0;
     }
 
-    //GO THROUGH EACH OF THE FINGERPRINTS AND THEIR CORRECPOSDING VECTORS AND MARK THE NUMBER OF OCCURRENCES (HOW MANY STRINGS HAVE THE FINGERPRINT)
+    cout << "creating array numberOfOccurrences for each string" << endl;
+
+    //GO THROUGH EACH OF THE FINGERPRINTS AND THEIR CORRESPONDING VECTORS AND MARK THE NUMBER OF OCCURRENCES (HOW MANY STRINGS HAVE THE FINGERPRINT)
     unordered_map<string, vector<bool>>::iterator fpiLoop = fingerPrintsIndex.begin();
     while (fpiLoop != fingerPrintsIndex.end()) {
         vector<bool> stringIndex = fpiLoop->second;
         for (int x = 0; x < numberOfStrings; x++) {
-            if (stringIndex[x] == 1) {
+            if (stringIndex[x]) {
                 numberOfOccurrences[x] += 1;
             }
         }
         fpiLoop++;
     }
+
+    cout << "checking which string has most number of occurrences" << endl;
 
     //GETTING THE FIRST PART OF RELATIVE STRING
     for (int i = 0; i < numberOfStrings; i++) {
@@ -248,47 +277,60 @@ string findRelativeString() {
             relativeFirstStr = i;
         }
     }
-    toReturn += dnaArray[relativeFirstStr];
 
-    relativeSecondStr = findNextRelativeString(fingerPrintsIndex,relativeFirstStr);
+    cout << "moving fingerprints that are not in first part of string" << endl;
+
+    fpiLoop = fingerPrintsIndex.begin();
+    int x = 0;
+    while (fpiLoop != fingerPrintsIndex.end()) {
+        if (x % 1000 == 0) {
+            cout << "in the loop : size of fingerprints" << fingerPrintsRemoveFirst.size() <<endl ;
+        }
+            if (!(fpiLoop->second)[relativeFirstStr]) {
+                fingerPrintsRemoveFirst[fpiLoop->first] = fpiLoop->second;
+            }    
+         x++;
+         fpiLoop++;
+    }
+
+    cout << " size of fingerprints " << fingerPrintsRemoveFirst.size() << endl;
+
+    cout << "creating array numberOfOccurrences for each string" << endl;
     
-    toReturn += dnaArray[relativeSecondStr];
+    for (int x = 0; x < numberOfStrings; x++) {
+        numberOfOccurrences[x] = 0;
+    }
+
+    //GO THROUGH EACH OF THE FINGERPRINTS AND THEIR CORRESPONDING VECTORS AND MARK THE NUMBER OF OCCURRENCES (EXCLUDING FIRST RELATIVE STRING)
+    fpiLoop = fingerPrintsRemoveFirst.begin();
+    while (fpiLoop != fingerPrintsRemoveFirst.end()) {
+        vector<bool> stringIndex = fpiLoop->second;
+        for (int x = 0; x < numberOfStrings; x++) {
+            if (stringIndex[x]) {
+                numberOfOccurrences[x] += 1;
+            }
+        }
+        fpiLoop++;
+    }
+
+    cout << "checking which string has most number of occurrences excluding the first one" << endl;
+
+    maxFingerPrint = 0;
+    //GETTING THE SECOND PART OF RELATIVE STRING
+    for (int i = 0; i < numberOfStrings; i++) {
+        if (numberOfOccurrences[i] > maxFingerPrint) {
+            maxFingerPrint = numberOfOccurrences[i];
+            relativeSecondStr = i;
+        }
+    }
+
+    toReturn = dnaArray[relativeFirstStr] + dnaArray[relativeSecondStr];
     
     cout << " size of string array " << totalSize;
     cout << " first relative string " << relativeFirstStr << " second relative string " << relativeSecondStr <<endl;
 
     return toReturn;
 }
-
-//CREATING SET OF FINGERPRINTS
-void setOfFingerPrints(set<string>& fingerPrintsTotal, string& currentString, int& j, string& manualRelativeString) {
-    string fingerPrint;
-    fingerPrint.reserve(limit);
-    fingerPrint.append(currentString, j, limit);    
-    if (fingerPrintsTotal.find(fingerPrint) == fingerPrintsTotal.end()) {
-        fingerPrintsTotal.insert(fingerPrint);
-        manualRelativeString += fingerPrint;
-    }
-}
-
-//MAKE A GOOD RELATIVE STRING
-string makeRelativeString() {
-    cout << "making relative string" << endl;
-    int totalSize = 0;
-    set<string> fingerPrintsTotal;
-    string manualRelativeString = "";
-
-    for (int i = 0; i < numberOfStrings; i++) {
-        cout << "first loop " << i << " size of string " << dnaArray[i].size();
-        totalSize += dnaArray[i].size();
-        for (int j = 0; j <= dnaArray[i].size() - limit; j++) {
-            setOfFingerPrints(fingerPrintsTotal, dnaArray[i], j, manualRelativeString);
-        }
-        cout << "size of total fingerprints " << fingerPrintsTotal.size() << endl;
-    }
-    return manualRelativeString ;
-}
-
 
 //FIND IF THE FINGERPRINT EXISTS AND WHICH INDICES ARE THERE
 vector<int> findFingerPrint(string& checkFingerPrint) {
