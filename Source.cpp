@@ -29,7 +29,7 @@ string* dnaArray;
 unordered_map<string, vector<int>> fingerPrints;
 unordered_map<char, int> singleChar;
 int memory = 0;
-string relativeString;
+string relativeString = "";
 int relativeSize;
 int numberOfStrings = 0;
 int memoryVar = 0;
@@ -108,6 +108,8 @@ void readDnaPizzaChilli(string& location) {
     string x;
     while (myfile >> x) {
         dnaArray[size] = x;
+        //TEST ONLY!!!
+        relativeString += x;
         size++;
     }
     myfile.close();
@@ -292,8 +294,23 @@ string findRelativeString() {
         if (z % 10000 == 0) {
             cout << "in the loop : size of fingerprints" << fingerPrintsRemoveFirst.size() <<endl ;
         }
-        if (!(fpiLoop->second)[relativeFirstStr]) {
-            fingerPrintsRemoveFirst[fpiLoop->first] = fpiLoop->second;  //KHUSH : LOOP THROUGH AND GET THE LAST BOOL VALUE CORRECTED
+        vector<bool> stringIndex = fpiLoop->second;
+        if (!(stringIndex[relativeFirstStr]) && stringIndex[numberOfStrings]) {
+            stringIndex[numberOfStrings] = false;
+            bool count = false;
+            for (int x = 0; x < numberOfStrings; x++) {
+                if (stringIndex[x]) {
+                    if (!count) {
+                        count = true;
+                    }
+                    else {
+                        stringIndex[numberOfStrings] = true;
+                        break;
+                    }
+                }
+            }
+            if(stringIndex[numberOfStrings])
+                fingerPrintsRemoveFirst[fpiLoop->first] = stringIndex; 
         }
         z++;
         fpiLoop++;
@@ -335,7 +352,7 @@ string findRelativeString() {
         }
     }
 
-    toReturn = dnaArray[relativeFirstStr] + dnaArray[relativeSecondStr];
+    toReturn = dnaArray[relativeSecondStr] + dnaArray[relativeFirstStr];
     
     cout << " size of string array " << totalSize;
     cout << " first relative string " << relativeFirstStr << " second relative string " << relativeSecondStr <<endl;
@@ -706,7 +723,7 @@ int main() {
     int i;
     string location = location_main + fileName;
 
-    if (fileName.substr(0, 3) == "dna") {
+    if (fileName.substr(0, 3) == "dna" || fileName.substr(0, 3) == "pro") {
         findSizePizzaChilli(location);
     }
     else {
@@ -716,7 +733,7 @@ int main() {
     dnaArray = new string[numberOfStrings];
     cout << "NUMBER OF STRINGS " << numberOfStrings << endl;
     
-    if (fileName.substr(0, 3) == "dna") {
+    if (fileName.substr(0, 3) == "dna" || fileName.substr(0, 3) == "pro") {
         readDnaPizzaChilli(location);
     }
     else {
@@ -736,14 +753,13 @@ int main() {
 
     cout << "DNA ARRAY READ !!!" << endl;
     
-    //relativeString = makeRelativeString();
     relativeString = findRelativeString();
     //relativeString = dnaArray[0];
     //ONLY TEST!!!
     //relativeString = dnaArray[0] + dnaArray[14];
     relativeSize = relativeString.size();
 
-    cout << "relative string found !!!" << endl;
+    cout << "relative string found and its size is " << relativeSize<< endl;
 
     setFingerPrintSingleChar();
     printSingleChar();
