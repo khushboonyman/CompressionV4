@@ -10,20 +10,17 @@
 
 using namespace std;
 //GLOBAL VARIABLES THAT NEED TO BE CHANGED ACCORDINGLY
-int version = 4;
 int limit = 10;
+string version = "double largest string with limit " + to_string(limit);
 int recursiveLimit = 1000;
-int runLimit = 10000;
-//int runLimit = 1000000;
+int runLimit = 1000000;
 string location_main = "C:\\Users\\Bruger\\Desktop\\books\\THESIS start aug 3\\datasets\\";
 //file name here
-//string fileName = "genome.fa";
 //string fileName = "Gen178.fa";
 //string fileName = "embl50.h178.fa";
-//FILE TO BE LOGGED
 //string fileName = "my_complete_genome.txt";
 //string fileName = "genome_selfmade_100.txt";
-//string fileName = "main_test_file_1.fsa";
+//FILE TO BE LOGGED
 string fileName = "dna";
 string* dnaArray;
 unordered_map<string, vector<int>> fingerPrints;
@@ -108,8 +105,6 @@ void readDnaPizzaChilli(string& location) {
     string x;
     while (myfile >> x) {
         dnaArray[size] = x;
-        //TEST ONLY!!!
-        relativeString += x;
         size++;
     }
     myfile.close();
@@ -134,18 +129,18 @@ void findBase() {
 }
 
 //WRITE A LOG TO THE FILE, WHICH WILL BE USED TO PLOT TIME AND SPACE USED BY COMPRESSION TECHNIQUE
-void writeLog(string &location, string &fileName, int &version, int &memoryVar, int &time) {
+void writeLog(string &location, string &fileName, string &version, int &memoryVar, float &compression, int time) {
     fstream myfile;
     myfile.open(location, fstream::app);
     cout << "log file opened" << endl;
     myfile << "\n";
-    myfile << fileName << ";" << version << ";" << memoryVar << ";" << time;
+    myfile << fileName << ";" << version << ";" << memoryVar << ";" << compression << ";" << time;
     myfile.close();
     cout << "log file closed" << endl;
 }
 
 //CREATING MAPS <FINGERPRINT,INDEXOFSTRING> and <FINGERPRINT,NUMBEROFOCCURRENCES>
-void updateFingerPrints(unordered_map<string, vector<bool>>& fingerPrintsIndex, string &currentString, int &i, int &j) {
+void updateFingerPrints(unordered_map<string, vector<bool>>& fingerPrintsIndex, string &currentString, int &i, int &j, int &limit) {
     string fingerPrint;
     fingerPrint.reserve(limit);
     fingerPrint.append(currentString, j, limit);
@@ -230,23 +225,158 @@ int findFirstRelativeString(unordered_map<string, vector<bool>>& fingerPrintsInd
     return relativeFirstStr;
 }
 
-//FIND A GOOD RELATIVE STRING
+//FIND A GOOD RELATIVE STRING .. SINGLE
 string findRelativeString() {
+    
+    version = "single string max fingerprints limit " + to_string(limit);
+    cout << version << endl;
+
     string toReturn = "";
     cout << "finding relative string" << endl;
 
-    int totalSize=0, relativeFirstStr=-1, relativeSecondStr=-1, maxFingerPrint=0, maxCommon=0, chosenStringSize=0;
+    int totalSize=0, relativeFirstStr=-1, maxFingerPrint=0, maxCommon=0, chosenStringSize=0;
     unordered_map<string, vector<bool>> fingerPrintsIndex ;
-    unordered_map<string, vector<bool>> fingerPrintsRemoveFirst;
 
     cout << "creating vector of fingerprints" << endl;
 
     for (int i = 0; i < numberOfStrings; i++) {
         cout << "first loop " << i << " size of string " << dnaArray[i].size() ;
         totalSize += dnaArray[i].size();
+        
         for (int j = 0; j <= dnaArray[i].size() - limit; j++) {
-            updateFingerPrints(fingerPrintsIndex, dnaArray[i], i, j);
-        }        
+            updateFingerPrints(fingerPrintsIndex, dnaArray[i], i, j, limit);
+        }
+        
+        cout << " size of fingerprints " << fingerPrintsIndex.size() << endl;
+    }
+
+    cout << "intializing number of occurrences" << endl;
+
+    vector<int> numberOfOccurrences(numberOfStrings);
+    for (int x = 0; x < numberOfStrings; x++) {
+        numberOfOccurrences[x] = 0;
+    }
+
+    cout << "creating array numberOfOccurrences for each string" << endl;
+
+    int z = 0;
+    //GO THROUGH EACH OF THE FINGERPRINTS AND THEIR CORRESPONDING VECTORS AND MARK THE NUMBER OF OCCURRENCES (HOW MANY FINGERPRINTS THE STRING HAS, THAT OTHERS ALSO HAVE)
+    unordered_map<string, vector<bool>>::iterator fpiLoop = fingerPrintsIndex.begin();
+    while (fpiLoop != fingerPrintsIndex.end()) {
+        if (z % 10000 == 0) {
+            cout << "in the loop : value of z " << z << endl;
+        }
+        vector<bool> stringIndex = fpiLoop->second;
+        for (int x = 0; x < numberOfStrings; x++) {
+            if (stringIndex[x] && stringIndex[numberOfStrings]) {
+                numberOfOccurrences[x] += 1;
+            }
+        }
+        fpiLoop++;
+        z++;
+    }
+
+    cout << "checking which string has most number of occurrences with others" << endl;
+
+    //GETTING THE RELATIVE STRING
+    for (int i = 0; i < numberOfStrings; i++) {
+        if (numberOfOccurrences[i] > maxFingerPrint) {
+            maxFingerPrint = numberOfOccurrences[i];
+            relativeFirstStr = i;
+        }
+    }
+
+    toReturn = dnaArray[relativeFirstStr];
+    cout << " size of string array " << totalSize;
+    cout << " first relative string " << relativeFirstStr <<endl;
+
+    return toReturn;
+}
+
+//FIND A GOOD RELATIVE STRING .. SINGLE
+string findRelative(int limit) {
+    string toReturn = "";
+    cout << "finding relative string" << endl;
+
+    int totalSize = 0, relativeFirstStr = -1, maxFingerPrint = 0, maxCommon = 0, chosenStringSize = 0;
+    unordered_map<string, vector<bool>> fingerPrintsIndex;
+
+    cout << "creating vector of fingerprints" << endl;
+
+    for (int i = 0; i < numberOfStrings; i++) {
+        cout << "first loop " << i << " size of string " << dnaArray[i].size();
+        totalSize += dnaArray[i].size();
+
+        for (int j = 0; j <= dnaArray[i].size() - limit; j++) {
+            updateFingerPrints(fingerPrintsIndex, dnaArray[i], i, j, limit);
+        }
+
+        cout << " size of fingerprints " << fingerPrintsIndex.size() << endl;
+    }
+
+    cout << "intializing number of occurrences" << endl;
+
+    vector<int> numberOfOccurrences(numberOfStrings);
+    for (int x = 0; x < numberOfStrings; x++) {
+        numberOfOccurrences[x] = 0;
+    }
+
+    cout << "creating array numberOfOccurrences for each string" << endl;
+
+    int z = 0;
+    //GO THROUGH EACH OF THE FINGERPRINTS AND THEIR CORRESPONDING VECTORS AND MARK THE NUMBER OF OCCURRENCES (HOW MANY FINGERPRINTS THE STRING HAS, THAT OTHERS ALSO HAVE)
+    unordered_map<string, vector<bool>>::iterator fpiLoop = fingerPrintsIndex.begin();
+    while (fpiLoop != fingerPrintsIndex.end()) {
+        if (z % 10000 == 0) {
+            cout << "in the loop : value of z " << z << endl;
+        }
+        vector<bool> stringIndex = fpiLoop->second;
+        for (int x = 0; x < numberOfStrings; x++) {
+            if (stringIndex[x] && stringIndex[numberOfStrings]) {
+                numberOfOccurrences[x] += 1;
+            }
+        }
+        fpiLoop++;
+        z++;
+    }
+
+    cout << "checking which string has most number of occurrences with others" << endl;
+
+    //GETTING THE RELATIVE STRING
+    for (int i = 0; i < numberOfStrings; i++) {
+        if (numberOfOccurrences[i] > maxFingerPrint) {
+            maxFingerPrint = numberOfOccurrences[i];
+            relativeFirstStr = i;
+        }
+    }
+
+    toReturn = dnaArray[relativeFirstStr];
+    cout << " size of string array " << totalSize;
+    cout << " first relative string " << relativeFirstStr << endl;
+
+    return toReturn;
+}
+
+//FIND A GOOD RELATIVE STRING .. TWO
+string findRelativeString(string second) {
+    version = "double string max fingerprint with limit " + to_string(limit);
+    string toReturn = "";
+    cout << "finding relative string version " << version << endl;
+
+    int totalSize = 0, relativeFirstStr = -1, relativeSecondStr = -1, maxFingerPrint = 0, maxCommon = 0, chosenStringSize = 0;
+    unordered_map<string, vector<bool>> fingerPrintsIndex;
+    unordered_map<string, vector<bool>> fingerPrintsRemoveFirst;
+
+    cout << "creating vector of fingerprints" << endl;
+
+    for (int i = 0; i < numberOfStrings; i++) {
+        cout << "first loop " << i << " size of string " << dnaArray[i].size();
+        totalSize += dnaArray[i].size();
+
+        for (int j = 0; j <= dnaArray[i].size() - limit; j++) {
+            updateFingerPrints(fingerPrintsIndex, dnaArray[i], i, j, limit);
+        }
+
         cout << " size of fingerprints " << fingerPrintsIndex.size() << endl;
     }
 
@@ -285,9 +415,9 @@ string findRelativeString() {
             relativeFirstStr = i;
         }
     }
-
-    cout << "moving fingerprints that are not in first part of string" << endl;
     
+    cout << "moving fingerprints that are not in first part of string" << endl;
+
     z = 0;
     fpiLoop = fingerPrintsIndex.begin();
     while (fpiLoop != fingerPrintsIndex.end()) {
@@ -310,7 +440,7 @@ string findRelativeString() {
                 }
             }
             if(stringIndex[numberOfStrings])
-                fingerPrintsRemoveFirst[fpiLoop->first] = stringIndex; 
+                fingerPrintsRemoveFirst[fpiLoop->first] = stringIndex;
         }
         z++;
         fpiLoop++;
@@ -319,7 +449,7 @@ string findRelativeString() {
     cout << " size of fingerprints " << fingerPrintsRemoveFirst.size() << endl;
 
     cout << "creating array numberOfOccurrences for each string" << endl;
-    
+
     for (int x = 0; x < numberOfStrings; x++) {
         numberOfOccurrences[x] = 0;
     }
@@ -355,9 +485,19 @@ string findRelativeString() {
     toReturn = dnaArray[relativeSecondStr] + dnaArray[relativeFirstStr];
     
     cout << " size of string array " << totalSize;
-    cout << " first relative string " << relativeFirstStr << " second relative string " << relativeSecondStr <<endl;
+    cout << " first relative string " << relativeFirstStr << " second relative string " << relativeSecondStr << endl;
 
     return toReturn;
+}
+
+string findRelativeString(bool split) {
+    version = "double string max fingerprint with limits " + to_string(limit) + " and " + to_string(limit/2);
+    cout << "finding first with limit " << limit <<endl ;
+    string first = findRelative(limit);
+    cout << "finding first with limit " << limit/2 << endl;
+    string second = findRelative(limit / 2);
+    cout << version << endl;
+    return first + second;
 }
 
 //FIND IF THE FINGERPRINT EXISTS AND WHICH INDICES ARE THERE
@@ -408,6 +548,19 @@ void setFingerPrintSingleChar() {
             existingVector.push_back(i);
             fingerPrints[fingerPrint] = existingVector;
         }
+        fingerPrint.reserve(limit/2);
+        fingerPrint.append(relativeString, i, limit/2);
+        it = fingerPrints.find(fingerPrint);
+        if (it == fingerPrints.end()) {
+            vector<int> newVector;
+            newVector.push_back(i);
+            fingerPrints[fingerPrint] = newVector;
+        }
+        else {
+            vector<int> existingVector = it->second;
+            existingVector.push_back(i);
+            fingerPrints[fingerPrint] = existingVector;
+        }
     }
 
     while (i < relativeSize) {
@@ -427,6 +580,41 @@ int expandRelative(char &charToAdd) {
     return relativeSize - 1;
 }
 
+void findLongest(vector<int> &indices, vector<int>& indexRelativeElement, vector<int>& indexCStringElement, int &start, string &toCompress, int &limit) {
+    int max_length = limit;
+    int max_index = -1;
+    for (vector<int>::iterator itV = indices.begin(); itV != indices.end(); itV++) {
+        if (max_index == -1) {
+            max_index = *itV;
+        }
+        int currIndexString = start + limit;
+        int currIndexRelativeString = *itV + limit;
+        int length = limit;
+        while (true) {
+            if (currIndexString >= toCompress.size() || currIndexRelativeString >= relativeSize) {
+                break;
+            }
+            char stringChar = toCompress[currIndexString];
+            char relativeChar = relativeString[currIndexRelativeString];
+            if (stringChar == relativeChar) {
+                currIndexString++;
+                currIndexRelativeString++;
+                length++;
+            }
+            else {
+                break;
+            }
+        }
+        if (length > max_length) {
+            max_length = length;
+            max_index = *itV;
+        }
+    }
+    indexRelativeElement.push_back(max_index);
+    indexCStringElement.push_back(start);
+    start += max_length;
+}
+
 //process compression based on if fingerPrint found or not 
 void findFingerPrint(int &start, string &toCompress, vector<int> &indexRelativeElement, vector<int> &indexCStringElement) {
     vector<int> indices;
@@ -436,50 +624,31 @@ void findFingerPrint(int &start, string &toCompress, vector<int> &indexRelativeE
     indices = findFingerPrint(checkFingerPrint);
     //limit size substring fingerprint not found
     if (indices.size() == 0) {
-        int index = findSingleChar(toCompress[start]);
-        if (index == -1) {
-            cout << "char not found : " << toCompress[start] << endl;
-            index = expandRelative(toCompress[start]);
+
+        checkFingerPrint.reserve(limit/2);
+        checkFingerPrint.append(toCompress, start, limit/2);
+        indices = findFingerPrint(checkFingerPrint);
+
+        if (indices.size() == 0) {
+            int index = findSingleChar(toCompress[start]);
+            if (index == -1) {
+                cout << "char not found : " << toCompress[start] << endl;
+                index = expandRelative(toCompress[start]);
+            }
+            indexRelativeElement.push_back(index);
+            indexCStringElement.push_back(start);
+            start++;
         }
-        indexRelativeElement.push_back(index);
-        indexCStringElement.push_back(start);
-        start++;
+        else {
+            int nextLimit = limit / 2;
+            findLongest(indices, indexRelativeElement, indexCStringElement, start, toCompress, nextLimit);
+        }
     }
     //fingerprint(s) found, so now we find the longest substring that matches through the fingerprint(s)
     else {
-        int max_length = limit;
-        int max_index = -1;
-        for (vector<int>::iterator itV = indices.begin(); itV != indices.end(); itV++) {
-            if (max_index == -1) {
-                max_index = *itV;
-            }
-            int currIndexString = start + limit;
-            int currIndexRelativeString = *itV + limit;
-            int length = limit;
-            while (true) {
-                if (currIndexString >= toCompress.size() || currIndexRelativeString >= relativeSize) {
-                    break;
-                }
-                char stringChar = toCompress[currIndexString];
-                char relativeChar = relativeString[currIndexRelativeString];
-                if (stringChar == relativeChar) {
-                    currIndexString++;
-                    currIndexRelativeString++;
-                    length++;
-                }
-                else {
-                    break;
-                }
-            }
-            if (length > max_length) {
-                max_length = length;
-                max_index = *itV;
-            }
-        }
-        indexRelativeElement.push_back(max_index);
-        indexCStringElement.push_back(start);
-        start += max_length;
+        findLongest(indices, indexRelativeElement, indexCStringElement, start, toCompress, limit);
     }
+        
 }
 
 //COMPRESS ONE STRING AT A TIME
@@ -641,7 +810,7 @@ auto processRandomRequests(int* sizes) {
     auto start = chrono::high_resolution_clock::now();
 
     while (counter < runLimit) {
-        if (counter % 100 == 0) {
+        if (counter % 10000 == 0) {
             cout << counter << endl;
         }
         stringIndex = rand() % (numberOfStrings - 1);
@@ -653,7 +822,7 @@ auto processRandomRequests(int* sizes) {
         char charFound = findCharacter(indexRelativeElement, indexCStringElement, charIndex);
         /* TEST */
         /*if (charFound != dnaArray[stringIndex][charIndex]) {
-            cout << "some issue fetching character " << stringIndex << " " << charIndex << endl;
+            cout << "some issue fetching character !!!!!!!!!!!!!!" << stringIndex << " " << charIndex << endl;
             break;
         }*/
         counter++;
@@ -716,11 +885,44 @@ void compressReference() {
     cout << "memory used by compression of main string : " << memory << "original size " << relativeString.size() << endl;
 }
 
+string findRecursiveRelative(int &maxIndex) {
+    
+    cout << "MAX LENGTH STRING ON INDEX" << maxIndex << endl;
+    relativeString = dnaArray[maxIndex];
+    relativeSize = relativeString.size();
+    int worstIndex = 0, goodCompressedCount = 0;
+    float worstCompression = 0.0;
+    setFingerPrintSingleChar();
+    printSingleChar();
+
+    cout << "COMPRESSING BUT NOT STORING !!!" << endl;
+
+    for (int i = 0; i < numberOfStrings; i++) {
+        int memoryOriginal, memoryCompressed;
+        memoryOriginal = dnaArray[i].size();
+        vector<int> indexRelative, indexCString;
+        cout << "compressing " << i << " of length " << memoryOriginal << endl;
+        compress(dnaArray[i], indexRelative, indexCString);
+        memoryCompressed = 8 * indexRelative.size(); //adding space for encoding
+        int currentCompression = ((float)memoryCompressed / (float)memoryOriginal)*100.0;
+        if ( currentCompression > worstCompression) {
+            worstCompression = currentCompression;
+            worstIndex = i;
+        }
+        if (currentCompression < 50.0) {
+            goodCompressedCount++;
+        }
+    }
+    cout << " NUMBER OF STRINGS COMPRESSED BELOW 50 % " << goodCompressedCount << endl;
+    cout << "WORST INDEX FOUND IS " << worstIndex << " WITH COMPRESSION " << worstCompression << endl;
+    return dnaArray[worstIndex];
+}
+
 
 int main() {
-    cout << "PROGRAM STARTING WITH LIMIT " << limit <<" FILE NAME "<< fileName << " !!!!!"<< endl;
+    cout << "PROGRAM STARTING WITH LIMIT " << limit <<" FILE NAME "<< fileName << " and version "<< version << endl;
 
-    int i;
+    int i, maxSize = 0, maxIndex, secondMax;
     string location = location_main + fileName;
 
     if (fileName.substr(0, 3) == "dna" || fileName.substr(0, 3) == "pro") {
@@ -748,15 +950,33 @@ int main() {
 
     for (i = 0; i < numberOfStrings; i++) {
         sizes[i] = dnaArray[i].size();
+        if (sizes[i] > maxSize) {
+            maxSize = sizes[i];
+            maxIndex = i;
+        }
         memoryOld += sizes[i]; //adding length of each string
     }
 
+    maxSize = 0;
+
+    for (i = 0; i < numberOfStrings; i++) {
+        if (sizes[i] > maxSize && i != maxIndex) {
+            maxSize = sizes[i];
+            secondMax = i;
+        }
+    }
+
     cout << "DNA ARRAY READ !!!" << endl;
+    string second = "double";
+    bool split = true;
+    //relativeString = dnaArray[maxIndex];
+    //relativeString = findRelativeString();
+    //relativeString = dnaArray[maxIndex] + dnaArray[secondMax];
+    //cout << "indices " << maxIndex << " and " << secondMax << endl;
+    //relativeString = findRelativeString(second);
+    relativeString = findRecursiveRelative(maxIndex);
+    //relativeString = findRelativeString(split); 
     
-    relativeString = findRelativeString();
-    //relativeString = dnaArray[0];
-    //ONLY TEST!!!
-    //relativeString = dnaArray[0] + dnaArray[14];
     relativeSize = relativeString.size();
 
     cout << "relative string found and its size is " << relativeSize<< endl;
@@ -788,6 +1008,7 @@ int main() {
     auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
     cout << " duration in millisec " << duration.count() << endl;
 
+    /*TEST*/
     delete[] dnaArray;
 
     cout << "AFTER COMPRESSION!!!" << endl;
@@ -795,6 +1016,7 @@ int main() {
     compressReference();
 
     auto durationRandomRequests = processRandomRequests(sizes);
+    /*TEST*/
     //delete[] dnaArray;
     delete[] sizes;
     delete[] indexRelative;
@@ -804,9 +1026,10 @@ int main() {
 
     memoryVar += memory;
     cout << "PROGRAM ENDING!!! " << endl;
-
-    cout << "old memory : " << memoryOld << " compressed memory : " << memoryVar << " compression " << ((float)memoryVar/(float)memoryOld)*100.0 << endl;
-    /*//string headers = "FILE_NAME;VERSION;MEMORY;TIME";
+    float compression = ((float)memoryVar / (float)memoryOld) * 100.0;
+    cout << "old memory : " << memoryOld << " compressed memory : " << memoryVar << " compression " << compression << endl;
+    //string headers = "FILE_NAME;VERSION;MEMORY;COMPRESSION;TIME";
+    /*TEST*/
     location = location_main + "LOGS.csv";
-    writeLog(location, fileName, version, memoryVar, (int)durationRandomRequests.count());*/
+    writeLog(location, fileName, version, memoryVar, compression, (int)durationRandomRequests.count());
 }
