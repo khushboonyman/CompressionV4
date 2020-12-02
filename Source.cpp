@@ -881,12 +881,12 @@ void compressReference() {
     char additional = '$';
     currentString += '$';
     updateVector(baseIndex, additional, currentIndex, currentString, subStrings, memory);
-    
-    cout << "memory used by compression of main string : " << memory << "original size " << relativeString.size() << endl;
+    float relativeCompressed = ((float)memory / (float)relativeSize) * 100.0;
+    cout << "memory used by compression of main string : " << memory << "original size " << relativeString.size() <<" "<<relativeSize<<" compressed " << relativeCompressed << endl;
 }
 
-string findRecursiveRelative(int &maxIndex) {
-    version = "single worst compressed strings with limit " + to_string(limit);
+int findRecursiveRelative(int maxIndex) {
+    version = "double worst compressed strings with limit " + to_string(limit);
     cout << "MAX LENGTH STRING ON INDEX" << maxIndex << " VERSION " << version << endl;
     relativeString = dnaArray[maxIndex];
     relativeSize = relativeString.size();
@@ -915,14 +915,15 @@ string findRecursiveRelative(int &maxIndex) {
     }
     cout << " NUMBER OF STRINGS COMPRESSED BELOW 50 % " << goodCompressedCount << endl;
     cout << "WORST INDEX FOUND IS " << worstIndex << " WITH COMPRESSION " << worstCompression << endl;
-    return dnaArray[worstIndex];
+
+    return worstIndex;
 }
 
 
 int main() {
     cout << "PROGRAM STARTING WITH LIMIT " << limit <<" FILE NAME "<< fileName << " and version "<< version << endl;
 
-    int i, maxSize = 0, maxIndex, secondMax;
+    int i, maxSize = 0, maxIndex = 0, secondMax = 0;
     string location = location_main + fileName;
 
     if (fileName.substr(0, 3) == "dna" || fileName.substr(0, 3) == "pro") {
@@ -974,7 +975,9 @@ int main() {
     //relativeString = dnaArray[maxIndex] + dnaArray[secondMax];
     //cout << "indices " << maxIndex << " and " << secondMax << endl;
     //relativeString = findRelativeString(second);
-    relativeString = findRecursiveRelative(maxIndex);
+    int secondIndex = findRecursiveRelative(maxIndex);
+    int thirdIndex = findRecursiveRelative(secondIndex);
+    relativeString = dnaArray[maxIndex] + dnaArray[secondIndex] + dnaArray[thirdIndex];
     //relativeString = findRelativeString(split); 
     
     relativeSize = relativeString.size();
