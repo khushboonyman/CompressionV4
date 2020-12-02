@@ -886,8 +886,8 @@ void compressReference() {
 }
 
 string findRecursiveRelative(int &maxIndex) {
-    
-    cout << "MAX LENGTH STRING ON INDEX" << maxIndex << endl;
+    version = "single worst compressed strings with limit " + to_string(limit);
+    cout << "MAX LENGTH STRING ON INDEX" << maxIndex << " VERSION " << version << endl;
     relativeString = dnaArray[maxIndex];
     relativeSize = relativeString.size();
     int worstIndex = 0, goodCompressedCount = 0;
