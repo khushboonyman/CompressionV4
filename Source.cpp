@@ -12,16 +12,18 @@ using namespace std;
 //GLOBAL VARIABLES THAT NEED TO BE CHANGED ACCORDINGLY
 int limit = 10;
 string version = "double largest string with limit " + to_string(limit);
-int recursiveLimit = 1000;
+int recursiveLimit = 2000;
 int runLimit = 1000000;
 string location_main = "C:\\Users\\Bruger\\Desktop\\books\\THESIS start aug 3\\datasets\\";
 //file name here
 //string fileName = "Gen178.fa";
 //string fileName = "embl50.h178.fa";
-//string fileName = "my_complete_genome.txt";
 //string fileName = "genome_selfmade_100.txt";
 //FILE TO BE LOGGED
-string fileName = "dna";
+//string fileName = "dna";
+//string fileName = "dna.200MB";
+string fileName = "my_complete_genome.txt";
+//string fileName = "genome.fa";
 string* dnaArray;
 unordered_map<string, vector<int>> fingerPrints;
 unordered_map<char, int> singleChar;
@@ -970,15 +972,19 @@ int main() {
     cout << "DNA ARRAY READ !!!" << endl;
     string second = "double";
     bool split = true;
-    //relativeString = dnaArray[maxIndex];
-    //relativeString = findRelativeString();
-    //relativeString = dnaArray[maxIndex] + dnaArray[secondMax];
-    //cout << "indices " << maxIndex << " and " << secondMax << endl;
-    //relativeString = findRelativeString(second);
-    int secondIndex = findRecursiveRelative(maxIndex);
-    int thirdIndex = findRecursiveRelative(secondIndex);
-    relativeString = dnaArray[maxIndex] + dnaArray[secondIndex] + dnaArray[thirdIndex];
-    //relativeString = findRelativeString(split); 
+    version = "string 0 compressed with limit " + to_string(limit);
+    relativeString = dnaArray[0]; //STRING 0 COMPRESSED WITH LIMIT 10
+    //relativeString = dnaArray[maxIndex]; //SINGLE STRING MAX LENGTH
+    //relativeString = dnaArray[maxIndex] + dnaArray[secondMax];   //DOUBLE STRING MAX LENGTHS
+    //cout << "indices " << maxIndex << " and " << secondMax << endl;  
+    //relativeString = findRelativeString(); //SINGLE STRING MAX COMMON FINGERPRINTS
+    //relativeString = findRelativeString(second);  //DOUBLE STRING MAX COMMON FINGERPRINTS
+    //relativeString = findRelativeString(split); //DOUBLE STRINGS MAX FINGERPRINTS WITH LIMITS 10 AND 5
+    //int secondIndex = findRecursiveRelative(maxIndex);
+    //relativeString = dnaArray[maxIndex] + dnaArray[secondIndex];  //DOUBLE LARGE STRING + WORST COMPRESSED ONES
+    //int thirdIndex = findRecursiveRelative(secondIndex);
+    //version = "triple worst compressed strings with limit " + to_string(limit);
+    //relativeString = dnaArray[maxIndex] + dnaArray[secondIndex] + dnaArray[thirdIndex];  //TRIPLE LARGE STRING + WORST COMPRESSED ONES 
     
     relativeSize = relativeString.size();
 
